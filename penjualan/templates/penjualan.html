@@ -169,9 +169,37 @@
                                                     <p id="no_head">#</p>
                                                 </td>
                                                 <td width="282px" colspan="2">
-                                                    <input type="text" class="form-control"
-                                                        placeholder="Kode / Nama Barang" autofocus id="input_kode"
-                                                        value="" tabindex="1">
+                                                    <!-- penjualan.html -->
+                                                        <!-- Tambahkan di dalam file penjualana.html -->
+                                                        <input type="text" id="searchBar" placeholder="Cari Barang...">
+                                                        <ul id="searchResults"></ul>
+
+                                                        <script>
+                                                        document.getElementById('searchBar').addEventListener('input', function() {
+                                                            var query = this.value;
+                                                            if (query.length > 2) {  // Cari jika jumlah karakter lebih dari 2
+                                                                fetch(`/search_barang?q=${query}`)
+                                                                    .then(response => response.json())
+                                                                    .then(data => {
+                                                                        var resultsContainer = document.getElementById('searchResults');
+                                                                        resultsContainer.innerHTML = '';  // Bersihkan hasil sebelumnya
+                                                                        data.forEach(item => {
+                                                                            var li = document.createElement('li');
+                                                                            li.textContent = item[1];  // namaBarang
+                                                                            li.onclick = function() {  // Tambahkan event ketika item diklik
+                                                                                addToSelectedList(item[0], item[1]);  // Misalnya fungsi untuk menambahkan ke list
+                                                                            };
+                                                                            resultsContainer.appendChild(li);
+                                                                        });
+                                                                    });
+                                                            }
+                                                        });
+
+                                                        function addToSelectedList(idBarang, namaBarang) {
+                                                            // Implementasi untuk menambahkan barang ke dalam list
+                                                            console.log('Barang dipilih:', namaBarang);
+                                                        }
+                                                        </script>
 
                                                     <input type="hidden" class="form-control" id="nama_barang_hide"
                                                         value="">
