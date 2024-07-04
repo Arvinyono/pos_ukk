@@ -1,186 +1,154 @@
-
 {% include "header1.html" %}
 
 <link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
 
 {% block body %}
 <div class="container">
+   <div class="row">
+      <div class="col md-12">
+         <h2>List Pelanggan
+            <button type="button" class="btn btn-success pull-right" data-toggle="modal" data-target="#myModal">Add Data
+               Pelanggan</button>
 
-    <div class="row">
-
-        <div class="col md-12">
-
-            <h2>List Pelanggan <button type="button" class="btn btn-success  pull-right" data-toggle="modal" data-target="#myModal">Add Data Pelanggan</button></h2>
-
-    {%with messages = get_flashed_messages()%}
-    {%if messages%}
-    {% for message in messages %}
-
-    <div class="alert alert-success alert-dismissable" role="alert">
-         <button type="button" class="close" data-dismiss="alert" aria-label ="close">
-             <span aria-hidden="true">&times;</span>
-         </button>
-        {{message}}
-    </div>
-
-    {%endfor%}
-    {%endif%}
-    {%endwith%}
-
-    <table class="table table-striped">
-          <tr>
-              <th>ID</th>
-              <th>No Pelanggan</th>
-              <th>Nama Pelanggan</th>
-              <th>Alamat</th>
-              <th>Telp</th>
-          </tr>
-
-                {% for row in tb_pelanggan %}
-                <tr>
-                    <td>{{row.0}}</td>
-                    <td>{{row.1}}</td>
-                    <td>{{row.2}}</td>
-                    <td>{{row.3}}</td>
-                    <td>{{row.4}}</td>
-                  <td>
-
-
-               <a href="/update/{{row.0}}" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modaledit{{row.0}}">Edit</a>
-                <a href="/delete_pelanggan/{{ row.0 }}" class="btn btn-danger btn-xs" onclick="return confirm('Apakah anda yakin akan di hapus?')">Delete</a>
-
-                    </td>
-
-                </tr>
-
-                <div id="modaledit{{row.0}}" class="modal fade" role="dialog">
-
-
-   <div class="modal-dialog">
-      <div class="modal-content">
-         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">Update Information</h4>
+            <button type="button" class="btn btn-primary pull-right" onclick="printData()">Print Data</button>
+            <!-- Tombol Print Data -->
+         </h2>
+         <!-- ... existing code ... -->
+         <form method="GET" action="{{ url_for('search_pelanggan') }}">
+            <input type="text" name="search" placeholder="Cari pelanggan...">
+            <button type="submit">Cari</button>
+         </form>
+         <!-- ... existing code ... -->
+         <table>
+         </table>
+         <!-- ... existing code ... -->
+         {%with messages = get_flashed_messages()%}
+         {%if messages%}
+         {% for message in messages %}
+         <div class="alert alert-success alert-dismissable" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+            {{message}}
          </div>
-         <div class="modal-body">
-            <form action="{{ url_for('update_pelanggan') }}" method="POST">
-
-               <div class="form-group">
-                  <label>No Pelanggan:</label>
-                   <input type="hidden"  name="idPelanggan" value="{{row.0}}">
-                  <input type="text" class="form-control" name="noPelanggan" value="{{row.1}}">
+         {%endfor%}
+         {%endif%}
+         {%endwith%}
+         <table class="table table-striped" id="dataTable"> <!-- Tambahkan id untuk tabel -->
+            <tr>
+               <th>ID</th>
+               <th>No Pelanggan</th>
+               <th>Nama Pelanggan</th>
+               <th>Alamat</th>
+               <th>Telp</th>
+            </tr>
+            {% for row in tb_pelanggan %}
+            <tr>
+               <td>{{row.0}}</td>
+               <td>{{row.1}}</td>
+               <td>{{row.2}}</td>
+               <td>{{row.3}}</td>
+               <td>{{row.4}}</td>
+               <td>
+                  <a href="/update/{{row.0}}" class="btn btn-warning btn-xs" data-toggle="modal"
+                     data-target="#modaledit{{row.0}}">Edit</a>
+                  <a href="/delete_pelanggan/{{ row.0 }}" class="btn btn-danger btn-xs"
+                     onclick="return confirm('Apakah anda yakin akan di hapus?')">Delete</a>
+               </td>
+            </tr>
+            <div id="modaledit{{row.0}}" class="modal fade" role="dialog">
+               <div class="modal-dialog">
+                  <div class="modal-content">
+                     <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Update Information</h4>
+                     </div>
+                     <div class="modal-body">
+                        <form action="{{ url_for('update_pelanggan') }}" method="POST">
+                           <div class="form-group">
+                              <label>No Pelanggan:</label>
+                              <input type="hidden" name="idPelanggan" value="{{row.0}}">
+                              <input type="text" class="form-control" name="noPelanggan" value="{{row.1}}">
+                           </div>
+                           <div class="form-group">
+                              <label>Nama:</label>
+                              <input type="text" class="form-control" name="name" value="{{row.2}}">
+                           </div>
+                           <div class="form-group">
+                              <label>Alamat:</label>
+                              <input type="text" class="form-control" name="alamat" value="{{row.3}}">
+                           </div>
+                           <div class="form-group">
+                              <label>Telepone:</label>
+                              <input type="number" class="form-control" name="telp" value="{{row.4}}">
+                           </div>
+                           <div class="form-group">
+                              <button class="btn btn-primary" type="submit">Update</button>
+                           </div>
+                        </form>
+                     </div>
+                     <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                     </div>
+                  </div>
                </div>
-
-
-
-               <div class="form-group">
-                  <label>Nama:</label>
-                  <input type="text" class="form-control" name="name" value="{{row.2}}">
+            </div>
+            {% endfor %}
+            </tbody>
+         </table>
+      </div>
+      <!-- Modal -->
+      <div id="myModal" class="modal fade" role="dialog">
+         <div class="modal-dialog">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h4 class="modal-title">Please Insert Data</h4>
                </div>
-
-
-               <div class="form-group">
-                  <label>Alamat:</label>
-                  <input type="text" class="form-control" name="alamat" value="{{row.3}}">
+               <div class="modal-body">
+                  <form action="{{ url_for('inserte') }}" method="POST">
+                     <div class="form-group">
+                        <label>No Pelanggan</label>
+                        <input type="text" class="form-control" name="noPelanggan" required="1">
+                     </div>
+                     <div class="form-group">
+                        <label>Nama:</label>
+                        <input type="text" class="form-control" name="name" required="1">
+                     </div>
+                     <div class="form-group">
+                        <label>Alamat:</label>
+                        <input type="text" class="form-control" name="alamat" required="1">
+                     </div>
+                     <div class="form-group">
+                        <label>Telepone:</label>
+                        <input type="number" class="form-control" name="telp" required="1">
+                     </div>
+                     <div class="form-group">
+                        <button class="btn btn-primary" type="submit">Insert Data</button>
+                     </div>
+                  </form>
                </div>
-
-              <div class="form-group">
-                  <label>Telepone:</label>
-                  <input type="number" class="form-control" name="telp" value="{{row.4}}">
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                </div>
-
-
-               <div class="form-group">
-                  <button class="btn btn-primary" type="sbumit">Update</button>
-               </div>
-
-            </form>
-
-         </div>
-
-
-         <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
          </div>
       </div>
+      {% include "footer1.html" %}
    </div>
 </div>
-
-
-                {% endfor  %}
-
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-<!-- Modal -->
-
-
-<div id="myModal" class="modal fade" role="dialog">
-   <div class="modal-dialog">
-      <div class="modal-content">
-         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-
-            <h4 class="modal-title">Please Insert Data</h4>
-
-         </div>
-
-
-         <div class="modal-body">
-            <form action="{{ url_for('inserte') }}" method="POST">
-               <div class="form-group">
-                  <label>No Pelanggan</label>
-                  <input type="text" class="form-control" name="noPelanggan" required="1">
-               </div>
-
-                <div class="form-group">
-                  <label>Nama:</label>
-                  <input type="text" class="form-control" name="name" required="1">
-               </div>
-
-                <div class="form-group">
-                  <label>Alamat:</label>
-                  <input type="text" class="form-control" name="alamat" required="1">
-               </div>
-
-                <div class="form-group">
-                  <label>Telepone:</label>
-                  <input type="number" class="form-control" name="telp" required="1">
-               </div>
-
-               <div class="form-group">
-                  <button class="btn btn-primary" type="submit">Insert Data</button>
-               </div>
-
-            </form>
-
-         </div>
-
-
-         <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-         </div>
-
-      </div>
-
-   </div>
-
-</div>
-
-
-
-
-  {% include "footer1.html" %}
-    </div>
-
-</div>
-
-
 {% endblock %}
+<script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+<script type="text/javascript" src="{{url_for('static', filename = 'js/bootstrap.min.js')}}"></script>
+<script type="text/javascript">
+   function printData() {
+      var divToPrint = document.getElementById("dataTable");
+      var newWin = window.open("");
+      newWin.document.write(divToPrint.outerHTML);
+      newWin.print();
+      newWin.close();
+   }
+</script>
 
 
 
