@@ -6,7 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 app = Flask(__name__)
 #koneksi
 app.secret_key = 'bebasapasaja'
-app.config['MYSQL_HOST'] ='localhost'
+app.config['MYSQL_HOST'] ='127.0.0.1'
 app.config['MYSQL_USER'] ='root'
 app.config['MYSQL_PASSWORD'] =''
 app.config['MYSQL_DB'] ='skafa1'
@@ -41,6 +41,9 @@ def registrasi():
             flash('Username atau email sudah ada','danger')
     return render_template('registrasi.html')
 
+
+
+
 #login
 @app.route('/login', methods=('GET', 'POST'))
 def login():
@@ -63,6 +66,8 @@ def login():
             return redirect(url_for('index'))
     return render_template('login.html')
 
+
+# UNTUK KONEKSI KE SETIAP MENU
 @app.route('/penjualana')
 def penjualana():
     cur = mysql.connection.cursor()
@@ -101,6 +106,15 @@ def suplier():
     
     return render_template('suplier.html', tb_suplier=data)
 
+@app.route('/pengeluaran')
+def pengeluaran():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM tb_pengeluaran")
+    data = cur.fetchall()
+    cur.close()
+    
+    return render_template('pengeluaran.html', tb_pengeluaran=data)
+
 @app.route('/laporan')
 def laporan():
     cur = mysql.connection.cursor()
@@ -111,6 +125,8 @@ def laporan():
     return render_template('laporan.html', tb_laporan=data)
 
 
+
+# CODINGAN BAGIAN INSERTS
 @app.route('/insert', methods = ['POST'])
 def insert():
 
@@ -153,9 +169,25 @@ def insertes():
         cur.execute("INSERT INTO tb_suplier (idSuplier, namaSuplier, alamat, phone) VALUES (%s, %s, %s, %s)", (idSuplier, namaSuplier, alamat, phone))
         mysql.connection.commit()
         return redirect(url_for('insertes'))
+    
+
+@app.route('/pengeluaran1', methods = ['POST'])
+def pengeluaran1():
+
+    if request.method == "POST":
+        flash("Data Inserted Successfully")
+        idPengeluaran = request.form['idPengeluaran']
+        pengeluaran = request.form['pengeluaran']
+        nominal = request.form['nominal']
+        status = request.form['status']
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO tb_pengeluaran (idPengeluaran, pengeluaran, nominal, status) VALUES (%s, %s, %s, %s)", (idPengeluaran, pengeluaran, nominal, status))
+        mysql.connection.commit()
+        return redirect(url_for('pengeluaran'))
 
 
 
+# CODINGAN BAGIAN DELETE
 @app.route('/delete/<string:id_data>', methods = ['GET'])
 def delete(id_data):
     flash("Record Has Been Deleted Successfully")
@@ -182,6 +214,17 @@ def delete_suplier(id_data_suplier):
     return redirect(url_for('suplier'))
 
 
+@app.route('/delete_pengeluaran/<string:id_data_pengeluaran>', methods = ['GET'])
+def delete_pengeluaran(id_data_pengeluaran):
+    flash("Record Has Been Deleted Successfully")
+    cursor = mysql.connection.cursor()
+    cursor.execute("DELETE FROM tb_pengeluaran WHERE idPengeluaran=%s", (id_data_pengeluaran,))
+    mysql.connection.commit()
+    return redirect(url_for('pengeluaran'))
+
+
+
+# CODINGAN BAGIAN UPDATE
 @app.route('/update',methods=['POST','GET'])
 def update():
 
@@ -244,6 +287,69 @@ def update_suplier():
         return redirect(url_for('suplier'))
 
 
+@app.route('/update_pengeluaran',methods=['POST','GET'])
+def update_pengeluaran():
+
+    if request.method == 'POST':
+        id_data_update_pengeluaran = request.form['idPengeluaran']
+        idPengeluaran = request.form['idPengeluaran']
+        pengeluaran = request.form['pengeluaran']
+        nominal = request.form['nominal']
+        status = request.form['status']
+
+        cur = mysql.connection.cursor()
+        cur.execute("""
+               UPDATE tb_pengeluaran
+               SET idPengeluaran=%s, pengeluaran=%s, nominal=%s, status=%s
+               WHERE idPengeluaran=%s
+            """, (idPengeluaran, pengeluaran, nominal, status))
+        flash("Data Updated Successfully")
+        mysql.connection.commit()
+        return redirect(url_for('pengeluaran'))
+    
+@app.route('/search')
+def search():
+    cur = mysql.connection.cursor()
+    search_query = request.args.get('search', '')  # mendapatkan query pencarian dari form
+    if search_query:
+        cur.execute("SELECT * FROM tb_barang WHERE namaBarang LIKE %s", ('%' + search_query + '%',))
+    else:
+        cur.execute("SELECT * FROM tb_barang")
+    data = cur.fetchall()
+    cur.close()
+    return render_template('penjualana.html', tb_barang=data)
+
+
+@app.route('/tambah_ke_list/<int:id_barang>')
+def tambah_ke_list(id_barang):
+    # Logika untuk menambahkan barang ke list, misalnya menyimpannya di session atau database
+    flash("Barang ditambahkan ke list")
+    return redirect(url_for('penjualan'))
+
+@app.route('/search_barang', methods=['GET'])
+def search_barang():
+    query = request.args.get('q', '')  # mendapatkan query dari parameter URL
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT idBarang, namaBarang FROM tb_barang WHERE namaBarang LIKE %s", ('%' + query + '%',))
+    barang_list = cur.fetchall()
+    cur.close()
+    return jsonify(barang_list)
+
+
+
+@app.route('/search_pelanggan', methods=['GET'])
+def search_pelanggan():
+    search_query = request.args.get('search', '')  # mendapatkan query pencarian dari form
+    cur = mysql.connection.cursor()
+    if search_query:
+        cur.execute("SELECT * FROM tb_pelanggan WHERE name LIKE %s", ('%' + search_query + '%',))
+    else:
+        cur.execute("SELECT * FROM tb_pelanggan")
+    data = cur.fetchall()
+    cur.close()
+    return render_template('pelanggan.html', tb_pelanggan=data)
+
+
 #logout
 @app.route('/logout')
 def logout():
@@ -253,4 +359,5 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5005)
+    
